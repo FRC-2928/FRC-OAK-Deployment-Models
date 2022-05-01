@@ -54,6 +54,24 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+def draw_boxes(detection, frame, label, color):
+    # Denormalize bounding box
+    x1 = int(detection.xmin * frame.shape[1])
+    x2 = int(detection.xmax * frame.shape[1])
+    y1 = int(detection.ymin * frame.shape[0])
+    y2 = int(detection.ymax * frame.shape[0])
+
+    x_coord = int(detection.spatialCoordinates.x)   
+    y_coord = int(detection.spatialCoordinates.y)
+    z_coord = int(detection.spatialCoordinates.z)
+    cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+    cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+    cv2.putText(frame, f"X: {x_coord} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+    cv2.putText(frame, f"Y: {y_coord} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+    cv2.putText(frame, f"Z: {z_coord} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+
+    cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
+    return frame
            
 def loop_and_detect(previewQueue, detectionNNQueue, depthQueue, 
                     xoutBoundingBoxDepthMappingQueue, labelMap, nt, cvSource):
@@ -116,34 +134,42 @@ def loop_and_detect(previewQueue, detectionNNQueue, depthQueue,
         height = frame.shape[0]
         width  = frame.shape[1]
         for detection in detections:
-            # Denormalize bounding box
-            x1 = int(detection.xmin * width)
-            x2 = int(detection.xmax * width)
-            y1 = int(detection.ymin * height)
-            y2 = int(detection.ymax * height)
             try:
                 label = labelMap[detection.label]
             except:
                 label = detection.label
+                
+            frame = draw_boxes(detection, frame, label, color)
+            # # Denormalize bounding box
+            # x1 = int(detection.xmin * width)
+            # x2 = int(detection.xmax * width)
+            # y1 = int(detection.ymin * height)
+            # y2 = int(detection.ymax * height)
+            
 
-            x_coord = int(detection.spatialCoordinates.x)   
-            y_coord = int(detection.spatialCoordinates.y)
-            z_coord = int(detection.spatialCoordinates.z)
-            cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, f"X: {x_coord} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, f"Y: {y_coord} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, f"Z: {z_coord} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            # x_coord = int(detection.spatialCoordinates.x)   
+            # y_coord = int(detection.spatialCoordinates.y)
+            # z_coord = int(detection.spatialCoordinates.z)
+            # cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            # cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            # cv2.putText(frame, f"X: {x_coord} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            # cv2.putText(frame, f"Y: {y_coord} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            # cv2.putText(frame, f"Z: {z_coord} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
 
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
+            # cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
 
             # Put data to Network Tables
             nt.put_spacial_data(detection, label, fps)
 
         cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
         
-        # Show the frame
-        cvSource.putFrame(frame)
+        if cvSource == False:
+            # Display stream to desktop window
+            cv2.imshow("depth", depthFrameColor)
+            cv2.imshow("rgb", frame)
+        else:               
+            # Display stream to browser
+            cvSource.putFrame(frame)   
 
         if cv2.waitKey(1) == ord('q'):
             break
@@ -160,15 +186,9 @@ def main():
         raise SystemExit('ERROR: file (%s.blob) not found!' % args.model)
 
     blob_file = args.model + '.blob'
-    config_file = args.model + '_config.json'
+    config_file = args.model + '-config.json'
     nnPath = str((Path(__file__).parent / Path(blob_file)).resolve().absolute())
     configPath = str((Path(__file__).parent / Path(config_file)).resolve().absolute())
-
-    # Start the mjpeg server (default)
-    cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
-    mjpeg_server = cs.MjpegServer("httpserver", args.mjpeg_port)
-    mjpeg_server.setSource(cvSource)
-    print('MJPEG server started on port', args.mjpeg_port)
 
     ## Read the model configuration file
     print("Loading network settings")
@@ -271,14 +291,30 @@ def main():
         depthQueue = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
 
         # Run the inference loop
-        try:
-            loop_and_detect(previewQueue, detectionNNQueue, 
-                            depthQueue, xoutBoundingBoxDepthMappingQueue, 
-                            model_config.labelMap, nt, cvSource=cvSource)
-        except Exception as e:
-            print(e)
-        finally:
-            print("Releasing camera...") 
+        if args.gui == True:
+            print("Gui requested")
+            try:
+                loop_and_detect(previewQueue, detectionNNQueue, 
+                                depthQueue, xoutBoundingBoxDepthMappingQueue, 
+                                model_config.labelMap, nt, cvSource=False)
+            except Exception as e:
+                print(e)
+            finally:
+                print("Finished") 
+        else:
+            # Start the mjpeg server (default)
+            cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
+            mjpeg_server = cs.MjpegServer("httpserver", args.mjpeg_port)
+            mjpeg_server.setSource(cvSource)
+            print('MJPEG server started on port', args.mjpeg_port)
+            try:
+                loop_and_detect(previewQueue, detectionNNQueue, 
+                                depthQueue, xoutBoundingBoxDepthMappingQueue, 
+                                model_config.labelMap, nt, cvSource=cvSource)
+            except Exception as e:
+                print(e)
+            finally:
+                print("Finished")         
 
 if __name__ == '__main__':
     main()        
