@@ -3,27 +3,22 @@ This repository stores *Deep Learning* models and scripts that can be deployed o
 
 Before deploying these models the Raspberry Pi must have the WPILibPi Romi image installed.  If running on a Jetson Nano that must be installed with Jetpack 4.6.  The main files are included in this repository are as follows:
 
-- `oak_yolo_spacial.py`  This is the default script that runs inference on a Yolo model and outputs detected objects with a label, bounding boxes and their X, Y, Z coordinates from the camera.  The script will display its output in a Web browser at `<server IP address:8080` and also places all of the data into the *WPILib* Network Tables.
-
-- `oak_yolo.py`  This is a lighter version of the above script that only collects the label and bounding box data.
-
-- `oak_yolo_spacial_gui.py`  This can be used to display camera stream output to the Jetson Nano desktop gui or any other device that has a gui desktop.
+- `oak_yolo_spacial.py`  This script runs inference on a Yolo model and outputs detected objects with a label, bounding boxes and their X, Y, Z coordinates from the camera.  The script will display its output in a Web browser at `<server IP address:8080` and also places all of the data into the *WPILib* Network Tables. If you're running this within a desktop environment you can also use the `--gui` option to display the output in a gui window.
 
 - `rapid-react.blob` This model has been trained on the Rapid-React balls from the 2022 FIRST Competition. The blob file format is designed to run specifically on an *OpenVINO* device.
 
 - `rapid-react-config.json` This is the configuration file needed to load the rapid-react model.  It includes the class labels and confidence level. 
 
-### Running the inference script
+### Running the Inference Script
 
-To run the inference using an attached Raspberry Pi camera.  
+To run the inference script using an OAK Depth camera:
 
-    cd ${HOME}tensorrt_demos
-    python3 trt_yolo_mjpeg.py --onboard 0 -m rapid-react
+    cd ${HOME}/depthai-python/examples/FRC-OAK-Deployment-Models
+    python oak_yolo_spacial.py -m rapid-react
 
-For a USB camera:    
+The streamed camera output can be viewed from `<Your server IP address>:8080`.  
+> Note: The camera stream does not work in a Safari browser, use Chrome or Firefox.
 
-    python3 trt_yolo_wpi.py --usb 1 -m rapid-react
+To run the inference script within a desktop GUI window:
 
-You can display the output stream in a desktop gui window like this:  
-
-    python3 trt_yolo_wpi.py --usb 1 -m rapid-react --gui
+    python oak_yolo_spacial.py -m rapid-react --gui
