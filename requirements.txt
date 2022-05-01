@@ -1,3 +1,3 @@
 Pillow
 pkgconfig
-python3-cscore
+robotpy-cscore
