@@ -40,7 +40,7 @@ def parse_args():
         '-t', '--conf_thresh', type=float, default=0.3,
         help='set the detection confidence threshold')
     parser.add_argument(
-        '-m', '--model', type=str, required=True, default='rapid-react',
+        '-m', '--model', type=str, required=True, default='custom',
         help=('[yolov3-tiny|yolov3|yolov3-spp|yolov4-tiny|yolov4|'
               'yolov4-csp|yolov4x-mish|yolov4-p5]-[{dimension}], where '
               '{dimension} could be either a single number (e.g. '
@@ -138,7 +138,7 @@ def loop_and_detect(previewQueue, detectionNNQueue, depthQueue,
                 label = labelMap[detection.label]
             except:
                 label = detection.label
-                
+
             frame = draw_boxes(detection, frame, label, color)
             # # Denormalize bounding box
             # x1 = int(detection.xmin * width)
@@ -163,7 +163,7 @@ def loop_and_detect(previewQueue, detectionNNQueue, depthQueue,
 
         cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
         
-        if cvSource == False:
+        if cvSource is False:
             # Display stream to desktop window
             cv2.imshow("depth", depthFrameColor)
             cv2.imshow("rgb", frame)
@@ -185,8 +185,8 @@ def main():
     if not os.path.isfile('%s.blob' % args.model):
         raise SystemExit('ERROR: file (%s.blob) not found!' % args.model)
 
-    blob_file = args.model + '.blob'
-    config_file = args.model + '-config.json'
+    blob_file = f"{args.model}.blob"
+    config_file = f"{args.model}-config.json"
     nnPath = str((Path(__file__).parent / Path(blob_file)).resolve().absolute())
     configPath = str((Path(__file__).parent / Path(config_file)).resolve().absolute())
 
@@ -198,7 +198,7 @@ def main():
     print("Confidence Threshold:", model_config.confidence_threshold)
 
     # Connect to WPILib Network Tables
-    # Read the frc config file, For WPILibPi Romi image this file is at /boot
+    # Read the FRC config file, for WPILibPi Romi image this file is at /boot
     wpi_config_file = os.path.join('/boot', 'frc.json')
 
     if not Path(wpi_config_file).exists():
@@ -291,7 +291,7 @@ def main():
         depthQueue = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
 
         # Run the inference loop
-        if args.gui == True:
+        if args.gui is True:
             print("Gui requested")
             try:
                 loop_and_detect(previewQueue, detectionNNQueue, 
