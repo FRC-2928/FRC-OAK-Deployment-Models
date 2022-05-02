@@ -189,6 +189,10 @@ def main():
     config_file = f"{args.model}-config.json"
     nnPath = str((Path(__file__).parent / Path(blob_file)).resolve().absolute())
     configPath = str((Path(__file__).parent / Path(config_file)).resolve().absolute())
+    print(f"Running model at path {nnPath}")
+
+    if not Path(nnPath).exists():
+        print(f"No model found at path {nnPath}")
 
     ## Read the model configuration file
     print("Loading network settings")
