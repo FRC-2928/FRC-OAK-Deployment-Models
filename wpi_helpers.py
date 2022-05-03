@@ -111,11 +111,11 @@ class WPINetworkTables():
         The WPINetworkTables class is used to send inference data back to the WPI program.
 
     # Arguments
-      cls_dict: a dictionary used to translate class id to its name.
+      labelMap: a dictionary used to translate class id to its name.
     """
 
-    def __init__(self, team, hardware_type, cls_dict):
-        self.cls_dict = cls_dict
+    def __init__(self, team, hardware_type, labelMap):
+        self.labelMap = labelMap
 
         ntinst = NetworkTablesInstance.getDefault()
         ntinst.startClientTeam(team)
@@ -135,7 +135,7 @@ class WPINetworkTables():
         
         for bb, cf, cl in zip(boxes, confidence, label):
             temp_entry = []
-            cls_name = self.cls_dict.get(int(cl))
+            cls_name = self.labelMap.get(int(cl))
             xmin, ymin, xmax, ymax = bb[0], bb[1], bb[2], bb[3]
             temp_entry.append({"label": cls_name, 
                                 "box": {"ymin": int(ymin), "xmin": int(xmin), "ymax": int(ymax), "xmax": int(xmax)}, 
