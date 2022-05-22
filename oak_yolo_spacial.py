@@ -160,7 +160,7 @@ def loop_and_detect(previewQueue, detectionNNQueue, depthQueue,
 # -------------------------------------------------------------------------
 # Main Program Start
 # -------------------------------------------------------------------------
-def main(args):
+def main(args, config_parser):
     
     # Get the model blob file
     if not os.path.isfile('%s.blob' % args.model):
@@ -291,7 +291,7 @@ def main(args):
                 print(e)
             finally:
                 print("Finished")         
-                
+
 
 if __name__ == '__main__':
     print("Running oak_yolo_spacial_wpi.py")
