@@ -11,6 +11,7 @@ from PIL import Image
 from pathlib import Path
 import sys
 import cv2
+import os
 from networktables import NetworkTablesInstance
 
 # Constants
@@ -18,8 +19,19 @@ FRAME_WIDTH = 416
 FRAME_HEIGHT = 416
 
 class ConfigParser:
-    def __init__(self, config_path):
+    def __init__(self):
         self.team = -1
+
+        # Get the FRC config file path. For WPILibPi Romi image this file 
+        # is at /boot.  
+        config_path = os.path.join('/boot', 'frc.json')
+
+        # For testing check the current directory
+        if not Path(config_path).exists():
+            # Use the file with this package if not running on the Romi image
+            config_path = os.path.join('frc.json')
+
+        print("Using config", config_path)
 
         # parse file
         try:
@@ -47,6 +59,7 @@ class ConfigParser:
     def parseError(self, str, config_file):
         """Report parse error."""
         print("config error in '" + config_file + "': " + str, file=sys.stderr)     
+
 
 # HTTPServer MJPEG
 class VideoStreamHandler(BaseHTTPRequestHandler):
@@ -106,14 +119,15 @@ class ModelConfigParser:
             self.confidence_threshold = metadata.get("confidence_threshold", nnConfig.get("confidence_threshold", None))
             self.classes = metadata.get("classes", None)
 
+
+"""
+    The WPINetworkTables class is used to send inference data back to the WPI program.
+
+# Arguments
+    team: FRC team number
+    labelMap: a dictionary used to translate class id to its name.
+"""
 class WPINetworkTables():
-    """
-        The WPINetworkTables class is used to send inference data back to the WPI program.
-
-    # Arguments
-      labelMap: a dictionary used to translate class id to its name.
-    """
-
     def __init__(self, team, hardware_type, labelMap):
         self.labelMap = labelMap
 

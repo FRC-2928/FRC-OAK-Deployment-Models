@@ -140,23 +140,6 @@ def loop_and_detect(previewQueue, detectionNNQueue, depthQueue,
                 label = detection.label
 
             frame = draw_boxes(detection, frame, label, color)
-            # # Denormalize bounding box
-            # x1 = int(detection.xmin * width)
-            # x2 = int(detection.xmax * width)
-            # y1 = int(detection.ymin * height)
-            # y2 = int(detection.ymax * height)
-            
-
-            # x_coord = int(detection.spatialCoordinates.x)   
-            # y_coord = int(detection.spatialCoordinates.y)
-            # z_coord = int(detection.spatialCoordinates.z)
-            # cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            # cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            # cv2.putText(frame, f"X: {x_coord} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            # cv2.putText(frame, f"Y: {y_coord} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            # cv2.putText(frame, f"Z: {z_coord} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-
-            # cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
 
             # Put data to Network Tables
             nt.put_spacial_data(detection, label, fps)
@@ -177,10 +160,8 @@ def loop_and_detect(previewQueue, detectionNNQueue, depthQueue,
 # -------------------------------------------------------------------------
 # Main Program Start
 # -------------------------------------------------------------------------
-def main():
-    print("Running oak_yolo_spacial_wpi.py")
-    args = parse_args()
-
+def main(args):
+    
     # Get the model blob file
     if not os.path.isfile('%s.blob' % args.model):
         raise SystemExit('ERROR: file (%s.blob) not found!' % args.model)
@@ -201,16 +182,6 @@ def main():
     print("Classes:", model_config.classes)
     print("Confidence Threshold:", model_config.confidence_threshold)
 
-    # Connect to WPILib Network Tables
-    # Read the FRC config file, for WPILibPi Romi image this file is at /boot
-    wpi_config_file = os.path.join('/boot', 'frc.json')
-
-    if not Path(wpi_config_file).exists():
-        # Use the file with this package if not running on the Romi image
-        wpi_config_file = os.path.join('frc.json')
-
-    print("Using config", wpi_config_file)
-    config_parser = ConfigParser(wpi_config_file)
     print("Connecting to Network Tables")
     hardware_type = "OAK-D Camera"
     nt = WPINetworkTables(config_parser.team, hardware_type, model_config.labelMap)
@@ -253,6 +224,7 @@ def main():
 
     # setting node configs
     stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+    stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
 
     spatialDetectionNetwork.setBlobPath(nnPath)
     spatialDetectionNetwork.setConfidenceThreshold(model_config.confidence_threshold)
@@ -319,6 +291,13 @@ def main():
                 print(e)
             finally:
                 print("Finished")         
+                
 
 if __name__ == '__main__':
-    main()        
+    print("Running oak_yolo_spacial_wpi.py")
+    args = parse_args()
+
+    # Load the FRC configuration file
+    config_parser = ConfigParser()
+
+    main(args, config_parser)        
