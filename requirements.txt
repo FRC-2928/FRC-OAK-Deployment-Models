@@ -1,3 +1,4 @@
 Pillow
-pkgconfig
-robotpy-cscore
+# pkgconfig
+# robotpy-cscore
+# av==9.2.0
