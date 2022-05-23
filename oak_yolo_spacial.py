@@ -189,8 +189,10 @@ def main(args, config_parser):
     print("Connecting to Network Tables")
     hardware_type = "OAK-D Camera"
     if args.no_network_tables == False:
+        print("Using Network Tables")
         networkTables = WPINetworkTables(config_parser.team, hardware_type, model_config.labelMap)
     else:
+        print("No Network Tables requested")
         networkTables = False    
 
     syncNN = True
