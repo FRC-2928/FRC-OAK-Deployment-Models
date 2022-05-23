@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import depthai as dai
 import av
+import depthai as dai
 from fractions import Fraction
 import time
 import sys
@@ -14,7 +14,7 @@ def parse_args():
             'YOLO model')
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument(
-        '-c', '--codec', type=float, default="mjpeg",
+        '-c', '--codec', type=str, default="mjpeg",
         help='codec can be either h264, h265, or mjpeg')
 
     args = parser.parse_args()
