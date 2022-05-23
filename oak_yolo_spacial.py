@@ -34,7 +34,11 @@ def parse_args():
     parser.add_argument(
         '-g', '--gui', action='store_true',
         help='use desktop gui for display [False]')
-    parser.set_defaults(gui=False)    
+    parser.set_defaults(gui=False) 
+    parser.add_argument(
+        '-n', '--no_network_tables', action='store_true',
+        help='use WPI Network Tables [True]')
+    parser.set_defaults(no_network_tables=False)   
     parser.add_argument(
         '-t', '--conf_thresh', type=float, default=0.3,
         help='set the detection confidence threshold')
@@ -73,7 +77,7 @@ def draw_boxes(detection, frame, label, color):
     return frame
            
 def loop_and_detect(previewQueue, detectionNNQueue, depthQueue, 
-                    xoutBoundingBoxDepthMappingQueue, labelMap, nt, cvSource):
+                    xoutBoundingBoxDepthMappingQueue, labelMap, networkTables, cvSource):
     """Continuously capture images from camera and do object detection.
 
     # Arguments
@@ -141,7 +145,8 @@ def loop_and_detect(previewQueue, detectionNNQueue, depthQueue,
             frame = draw_boxes(detection, frame, label, color)
 
             # Put data to Network Tables
-            nt.put_spacial_data(detection, label, fps)
+            if networkTables:
+                networkTables.put_spacial_data(detection, label, fps)
 
         cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
         
@@ -183,7 +188,10 @@ def main(args, config_parser):
 
     print("Connecting to Network Tables")
     hardware_type = "OAK-D Camera"
-    nt = WPINetworkTables(config_parser.team, hardware_type, model_config.labelMap)
+    if args.no_network_tables == False:
+        networkTables = WPINetworkTables(config_parser.team, hardware_type, model_config.labelMap)
+    else:
+        networkTables = False    
 
     syncNN = True
 
@@ -271,7 +279,7 @@ def main(args, config_parser):
             try:
                 loop_and_detect(previewQueue, detectionNNQueue, 
                                 depthQueue, xoutBoundingBoxDepthMappingQueue, 
-                                model_config.labelMap, nt, cvSource=False)
+                                model_config.labelMap, networkTables, cvSource=False)
             except Exception as e:
                 print(e)
             finally:
@@ -286,7 +294,7 @@ def main(args, config_parser):
             try:
                 loop_and_detect(previewQueue, detectionNNQueue, 
                                 depthQueue, xoutBoundingBoxDepthMappingQueue, 
-                                model_config.labelMap, nt, cvSource=cvSource)
+                                model_config.labelMap, networkTables, cvSource=cvSource)
             except Exception as e:
                 print(e)
             finally:
