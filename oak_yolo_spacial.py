@@ -11,7 +11,6 @@ from pathlib import Path
 from pathlib import Path
 import cv2
 import depthai as dai
-import cscore as cs
 
 from wpi_helpers import ConfigParser, WPINetworkTables, ModelConfigParser, WPINetworkTables
 
@@ -279,6 +278,7 @@ def main(args, config_parser):
                 print("Finished") 
         else:
             # Start the mjpeg server (default)
+            import cscore as cs
             cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
             mjpeg_server = cs.MjpegServer("httpserver", args.mjpeg_port)
             mjpeg_server.setSource(cvSource)
