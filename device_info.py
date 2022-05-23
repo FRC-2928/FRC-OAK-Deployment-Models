@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
+import cv2 # Must be imported otherwise cscore import hangs
 import depthai as dai
-import cv2
 import cscore as cs
 
 pipeline = dai.Pipeline()
