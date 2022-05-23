@@ -2,6 +2,7 @@
 
 import depthai as dai
 import cv2
+import cscore as cs
 
 pipeline = dai.Pipeline()
 
@@ -13,6 +14,13 @@ xoutRgb.setStreamName("rgb")
 # Linking
 camRgb.preview.link(xoutRgb.input)
 
+# Start the mjpeg server (default)
+mjpeg_port = 8080
+cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
+mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
+mjpeg_server.setSource(cvSource)
+print('MJPEG server started on port', mjpeg_port)
+
 # Upload the pipeline to the device
 with dai.Device(pipeline) as device:
     # Print Myriad X Id (MxID), USB speed, and available cameras on the device
@@ -20,22 +28,18 @@ with dai.Device(pipeline) as device:
     print('USB speed:',device.getUsbSpeed())
     print('Connected cameras:',device.getConnectedCameras())
 
-    # Input queue, to send message from the host to the device (you can receive the message on the device with XLinkIn)
-    #   input_q = device.getInputQueue("input_name", maxSize=4, blocking=False)
-
     # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
-    #   output_q = device.getOutputQueue("output_name", maxSize=4, blocking=False)
     previewQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
-    while True:
-        # Get a message that came from the queue
-        inPreview = previewQueue.get() # Or output_q.tryGet() for non-blocking
-        frame = inPreview.getCvFrame()
-        cv2.imshow("rgb", frame)
+    try:
+        while True:
+            # Get a message that came from the queue
+            inPreview = previewQueue.get() # Or output_q.tryGet() for non-blocking
+            frame = inPreview.getCvFrame()
 
-        # Send a message to the device
-        # cfg = dai.ImageManipConfig()
-        # input_q.send(cfg)
+            # Display stream to browser
+            cvSource.putFrame(frame)   
 
-        if cv2.waitKey(1) == ord('q'):
-            break
+    except KeyboardInterrupt:
+        # Keyboard interrupt (Ctrl + C) detected
+        pass  
