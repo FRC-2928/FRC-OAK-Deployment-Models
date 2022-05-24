@@ -52,20 +52,20 @@ with dai.Device(pipeline) as device:
     print('Connected cameras:',device.getConnectedCameras())
 
     # Output queue will be used to get the encoded data from the output defined above
-    previewQueue = device.getOutputQueue(name="h265", maxSize=30, blocking=True)
+    previewQueue = device.getOutputQueue(name="preview")
+    h265Queue = device.getOutputQueue(name="h265", maxSize=30, blocking=True)
     # previewQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
     # The .h265 file is a raw stream file (not playable yet)
     with open('video.h265', 'wb') as videoFile:
         print("Press Ctrl+C to stop encoding...")
-        preview = device.getOutputQueue('preview')
         try:
             while True:
-                h265Packet = previewQueue.get()  # Blocking call, will wait until a new data has arrived
+                h265Packet = h265Queue.get()  # Blocking call, will wait until a new data has arrived
                 h265Packet.getData().tofile(videoFile)  # Appends the packet data to the opened file
 
                 # Display stream
-                previewFrame = preview.get()
+                previewFrame = previewQueue.get()
                 frame = previewFrame.getFrame()
                 if cvSource is False:
                     # Display stream to desktop window
