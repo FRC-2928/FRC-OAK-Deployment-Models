@@ -36,6 +36,7 @@ with dai.Device(pipeline) as device:
         while True:
             videoFrame = video.get()
             previewFrame = preview.get()
+            img.saveData(previewFrame.getFrame(), 0)
 
             # Get BGR frame from NV12 encoded video frame to show with opencv
             cv2.imshow("video", videoFrame.getCvFrame())
@@ -44,9 +45,10 @@ with dai.Device(pipeline) as device:
 
             if cv2.waitKey(1) == ord('q'):
                 break
-            
+
     except KeyboardInterrupt:
         # Keyboard interrupt (Ctrl + C) detected
         pass
 
-    print("Saving log file")        
+    print("Saving log file")  
+    img.saveLog()      
