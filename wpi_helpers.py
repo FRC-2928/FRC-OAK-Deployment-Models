@@ -119,15 +119,53 @@ class ModelConfigParser:
             self.confidence_threshold = metadata.get("confidence_threshold", nnConfig.get("confidence_threshold", None))
             self.classes = metadata.get("classes", None)
 
+class Camera():
+    def __init__(self, config_parser):
+        camera_config = config_parser.cameras[0]
+        WIDTH, HEIGHT = camera_config["width"], camera_config["height"]
 
-"""
-    The WPINetworkTables class is used to send inference data back to the WPI program.
+        try:
+            # Use CameraServer if installed
+            from cscore import CameraServer
+            print("Starting camera server")
+            cs = CameraServer.getInstance()
+            cam = cs.startAutomaticCapture()
+            cam.setResolution(WIDTH, HEIGHT)
+            camera = cs.getVideo()
+            self.img = np.zeros(shape=(HEIGHT, WIDTH, 3), dtype=np.uint8)
+            self.mjpegServer = cs.putVideo("OpenCV DNN", WIDTH, HEIGHT)
+        except ModuleNotFoundError:
+            # Else use OpenCV camera
+            print("Starting cv2 camera")
+            camera = cv2.VideoCapture(0)
+            camera.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
+            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
+            self.mjpegServer = False
 
-# Arguments
-    team: FRC team number
-    labelMap: a dictionary used to translate class id to its name.
-"""
+        self.camera = camera   
+
+    def read(self):
+        if self.mjpegServer is False:
+            return self.camera.read()   
+        else:
+            return self.camera.grabFrame(self.img)
+
+    def output(self, frame):    
+        # show the output image
+        if self.mjpegServer is False:
+            cv2.imshow("Image", frame)
+        else:
+            self.mjpegServer.putFrame(frame)        
+
+
 class WPINetworkTables():
+    """
+        The WPINetworkTables class is used to send inference data back to the WPI program.
+
+    # Arguments
+        team: FRC team number
+        labelMap: a dictionary used to translate class id to its name.
+    """    
     def __init__(self, team, hardware_type, labelMap):
         self.labelMap = labelMap
 

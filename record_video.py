@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import depthai as dai
+import cv2 # Must be imported otherwise cscore import hangs
+import cscore as cs
 
 # Create pipeline
 pipeline = dai.Pipeline()
@@ -25,6 +27,14 @@ videoEnc.setDefaultProfilePreset(30, dai.VideoEncoderProperties.Profile.H265_MAI
 # Linking
 camRgb.video.link(videoEnc.input)
 videoEnc.bitstream.link(xout.input)
+
+# Start the mjpeg server (default)
+print("Starting mjpeg server")
+mjpeg_port = 8080
+cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
+mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
+mjpeg_server.setSource(cvSource)
+print('MJPEG server started on port', mjpeg_port)
 
 # Connect to device and start pipeline
 with dai.Device(pipeline) as device:

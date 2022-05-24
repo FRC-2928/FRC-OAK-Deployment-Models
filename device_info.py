@@ -2,7 +2,6 @@
 
 import cv2 # Must be imported otherwise cscore import hangs
 import depthai as dai
-import cscore as cs
 
 pipeline = dai.Pipeline()
 
@@ -15,11 +14,15 @@ xoutRgb.setStreamName("rgb")
 camRgb.preview.link(xoutRgb.input)
 
 # Start the mjpeg server (default)
-mjpeg_port = 8080
-cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
-mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
-mjpeg_server.setSource(cvSource)
-print('MJPEG server started on port', mjpeg_port)
+try:
+    import cscore as cs
+    mjpeg_port = 8080
+    cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
+    mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
+    mjpeg_server.setSource(cvSource)
+    print('MJPEG server started on port', mjpeg_port)
+except Exception as e:
+    cvSource = False
 
 # Upload the pipeline to the device
 with dai.Device(pipeline) as device:
@@ -38,7 +41,15 @@ with dai.Device(pipeline) as device:
             frame = inPreview.getCvFrame()
 
             # Display stream to browser
-            cvSource.putFrame(frame)   
+            if cvSource is False:
+                # Display stream to desktop window
+                cv2.imshow("rgb", frame)
+            else:               
+                # Display stream to browser
+                cvSource.putFrame(frame)   
+
+            if cv2.waitKey(1) == ord('q'):
+                break
 
     except KeyboardInterrupt:
         # Keyboard interrupt (Ctrl + C) detected
