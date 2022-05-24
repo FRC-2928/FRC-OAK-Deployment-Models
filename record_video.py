@@ -27,16 +27,16 @@ videoEnc.setDefaultProfilePreset(30, dai.VideoEncoderProperties.Profile.H265_MAI
 camRgb.video.link(videoEnc.input)
 videoEnc.bitstream.link(xout.input)
 
-# Start the mjpeg server (default)
-try:
-    import cscore as cs
-    mjpeg_port = 8080
-    cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
-    mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
-    mjpeg_server.setSource(cvSource)
-    print('MJPEG server started on port', mjpeg_port)
-except Exception as e:
-    cvSource = False
+# Start the mjpeg server (default)  This parts not working
+# try:
+#     import cscore as cs
+#     mjpeg_port = 8080
+#     cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
+#     mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
+#     mjpeg_server.setSource(cvSource)
+#     print('MJPEG server started on port', mjpeg_port)
+# except Exception as e:
+#     cvSource = False
 
 # Connect to device and start pipeline
 with dai.Device(pipeline) as device:
@@ -54,13 +54,13 @@ with dai.Device(pipeline) as device:
                 h265Packet.getData().tofile(videoFile)  # Appends the packet data to the opened file
 
                 # Display stream
-                frame = h265Packet.getCvFrame()
-                if cvSource is False:
-                    # Display stream to desktop window
-                    cv2.imshow("rgb", frame)
-                else:               
-                    # Display stream to browser
-                    cvSource.putFrame(frame)   
+                # frame = h265Packet.getCvFrame()
+                # if cvSource is False:
+                #     # Display stream to desktop window
+                #     cv2.imshow("rgb", frame)
+                # else:               
+                #     # Display stream to browser
+                #     cvSource.putFrame(frame)   
         except KeyboardInterrupt:
             # Keyboard interrupt (Ctrl + C) detected
             pass
