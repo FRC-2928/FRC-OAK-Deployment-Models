@@ -65,7 +65,8 @@ with dai.Device(pipeline) as device:
                 h265Packet.getData().tofile(videoFile)  # Appends the packet data to the opened file
 
                 # Display stream
-                frame = preview.get()
+                previewFrame = preview.get()
+                frame = previewFrame.getFrame()
                 if cvSource is False:
                     # Display stream to desktop window
                     cv2.imshow("rgb", frame)
