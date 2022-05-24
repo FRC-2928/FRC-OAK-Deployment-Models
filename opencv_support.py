@@ -2,6 +2,7 @@
 
 import cv2
 import depthai as dai
+import img_helpers as img
 
 # Create pipeline
 pipeline = dai.Pipeline()
@@ -31,14 +32,21 @@ with dai.Device(pipeline) as device:
     video = device.getOutputQueue('video')
     preview = device.getOutputQueue('preview')
 
-    while True:
-        videoFrame = video.get()
-        previewFrame = preview.get()
+    try:
+        while True:
+            videoFrame = video.get()
+            previewFrame = preview.get()
 
-        # Get BGR frame from NV12 encoded video frame to show with opencv
-        cv2.imshow("video", videoFrame.getCvFrame())
-        # Show 'preview' frame as is (already in correct format, no copy is made)
-        cv2.imshow("preview", previewFrame.getFrame())
+            # Get BGR frame from NV12 encoded video frame to show with opencv
+            cv2.imshow("video", videoFrame.getCvFrame())
+            # Show 'preview' frame as is (already in correct format, no copy is made)
+            cv2.imshow("preview", previewFrame.getFrame())
 
-        if cv2.waitKey(1) == ord('q'):
-            break
+            if cv2.waitKey(1) == ord('q'):
+                break
+            
+    except KeyboardInterrupt:
+        # Keyboard interrupt (Ctrl + C) detected
+        pass
+
+    print("Saving log file")        

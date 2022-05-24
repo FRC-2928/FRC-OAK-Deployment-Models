@@ -3,7 +3,6 @@
 import depthai as dai
 import img_helpers as img
 import cv2 # Must be imported otherwise cscore import hangs
-from datetime import datetime
 
 # Create pipeline
 pipeline = dai.Pipeline()
