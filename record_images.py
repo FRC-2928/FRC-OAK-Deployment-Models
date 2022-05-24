@@ -86,16 +86,15 @@ with dai.Device(pipeline) as device:
         while True:
             # Save stream
             previewFrame = previewQueue.get()
-            frame = previewFrame.getFrame()
-            saveData(frame, 0)
+            saveData(previewFrame.getFrame(), 0)
 
             # Display stream
             if cvSource is False:
                 # Display stream to desktop window
-                cv2.imshow("rgb", frame)
+                cv2.imshow("rgb", previewFrame.getCvFrame())
             else:               
                 # Display stream to browser
-                cvSource.putFrame(frame)   
+                cvSource.putFrame(previewFrame.getFrame())   
 
     except KeyboardInterrupt:
         # Keyboard interrupt (Ctrl + C) detected

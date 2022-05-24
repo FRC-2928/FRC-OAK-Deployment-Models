@@ -66,7 +66,7 @@ with dai.Device(pipeline) as device:
 
                 # Display stream
                 previewFrame = previewQueue.get()
-                frame = previewFrame.getFrame()
+                frame = previewFrame.getCvFrame()
                 if cvSource is False:
                     # Display stream to desktop window
                     cv2.imshow("rgb", frame)
