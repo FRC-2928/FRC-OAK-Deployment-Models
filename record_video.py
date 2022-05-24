@@ -42,18 +42,19 @@ except Exception as e:
 with dai.Device(pipeline) as device:
 
     # Output queue will be used to get the encoded data from the output defined above
-    inPreview = device.getOutputQueue(name="h265", maxSize=30, blocking=True)
+    previewQueue = device.getOutputQueue(name="h265", maxSize=30, blocking=True)
+    # previewQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
     # The .h265 file is a raw stream file (not playable yet)
     with open('video.h265', 'wb') as videoFile:
         print("Press Ctrl+C to stop encoding...")
         try:
             while True:
-                h265Packet = inPreview.get()  # Blocking call, will wait until a new data has arrived
+                h265Packet = previewQueue.get()  # Blocking call, will wait until a new data has arrived
                 h265Packet.getData().tofile(videoFile)  # Appends the packet data to the opened file
 
                 # Display stream
-                frame = inPreview.getCvFrame()
+                frame = h265Packet.getCvFrame()
                 if cvSource is False:
                     # Display stream to desktop window
                     cv2.imshow("rgb", frame)
