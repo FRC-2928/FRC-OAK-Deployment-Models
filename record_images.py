@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 
+import cv2
 import depthai as dai
 import img_helpers as img
-import cv2 # Must be imported otherwise cscore import hangs
 
 # Create pipeline
 pipeline = dai.Pipeline()
 
-# Define sources and output
+# Define source and outputs
 camRgb = pipeline.create(dai.node.ColorCamera)
+xoutVideo = pipeline.create(dai.node.XLinkOut)
 xoutPreview = pipeline.create(dai.node.XLinkOut)
-xoutPreview.setStreamName('preview')
+
+xoutVideo.setStreamName("video")
+xoutPreview.setStreamName("preview")
 
 # Properties
 camRgb.setPreviewSize(300, 300)
@@ -20,6 +23,7 @@ camRgb.setInterleaved(True)
 camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 
 # Linking
+camRgb.video.link(xoutVideo.input)
 camRgb.preview.link(xoutPreview.input)
 
 # Start the mjpeg server (default)
@@ -32,37 +36,30 @@ try:
     print('MJPEG server started on port', mjpeg_port)
 except Exception as e:
     cvSource = False
-
+    
 # Connect to device and start pipeline
 with dai.Device(pipeline) as device:
 
-    # Print Myriad X Id (MxID), USB speed, and available cameras on the device
-    print('MxId:',device.getDeviceInfo().getMxId())
-    print('USB speed:',device.getUsbSpeed())
-    print('Connected cameras:',device.getConnectedCameras())
+    video = device.getOutputQueue('video')
+    preview = device.getOutputQueue('preview')
 
-    # Output queue will be used to get the encoded data from the output defined above
-    # previewQueue = device.getOutputQueue(name="preview", maxSize=4, blocking=False)
-    previewQueue = device.getOutputQueue('preview')
-
-    print("Press Ctrl+C to stop encoding...")
     try:
         while True:
-            # Save stream
-            previewFrame = previewQueue.get()
+            videoFrame = video.get()
+            previewFrame = preview.get()
             img.saveData(previewFrame.getFrame(), 0)
 
-            # Display stream
-            if cvSource is False:
-                # Display stream to desktop window
-                cv2.imshow("rgb", previewFrame.getCvFrame())
-            else:               
-                # Display stream to browser
-                cvSource.putFrame(previewFrame.getFrame())   
+            # Get BGR frame from NV12 encoded video frame to show with opencv
+            cv2.imshow("video", videoFrame.getCvFrame())
+            # Show 'preview' frame as is (already in correct format, no copy is made)
+            cv2.imshow("preview", previewFrame.getFrame())
+
+            if cv2.waitKey(1) == ord('q'):
+                break
 
     except KeyboardInterrupt:
         # Keyboard interrupt (Ctrl + C) detected
         pass
 
-    print("Saving log file")    
-    img.saveLog()
+    print("Saving log file")  
+    img.saveLog()      

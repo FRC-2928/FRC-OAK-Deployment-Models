@@ -2,7 +2,7 @@
 
 import cv2
 import depthai as dai
-import img_helpers as img
+# import img_helpers as img
 
 # Create pipeline
 pipeline = dai.Pipeline()
@@ -36,7 +36,7 @@ with dai.Device(pipeline) as device:
         while True:
             videoFrame = video.get()
             previewFrame = preview.get()
-            img.saveData(previewFrame.getFrame(), 0)
+            # img.saveData(previewFrame.getFrame(), 0)
 
             # Get BGR frame from NV12 encoded video frame to show with opencv
             cv2.imshow("video", videoFrame.getCvFrame())
@@ -50,5 +50,5 @@ with dai.Device(pipeline) as device:
         # Keyboard interrupt (Ctrl + C) detected
         pass
 
-    print("Saving log file")  
-    img.saveLog()      
+    # print("Saving log file")  
+    # img.saveLog()      
