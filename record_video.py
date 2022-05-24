@@ -13,13 +13,9 @@ xout = pipeline.create(dai.node.XLinkOut)
 xoutPreview = pipeline.create(dai.node.XLinkOut)
 
 xout.setStreamName('h265')
-xoutPreview.setStreamName('preview')
+xoutPreview.setStreamName('rgb')
 
 # Properties
-# frame_width = 416
-# frame_height = 416
-# camRgb.setPreviewSize(frame_width, frame_height)
-
 camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
 # camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_4_K)
 camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
@@ -52,9 +48,8 @@ with dai.Device(pipeline) as device:
     print('Connected cameras:',device.getConnectedCameras())
 
     # Output queue will be used to get the encoded data from the output defined above
-    previewQueue = device.getOutputQueue(name="preview")
     h265Queue = device.getOutputQueue(name="h265", maxSize=30, blocking=True)
-    # previewQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+    previewQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
     # The .h265 file is a raw stream file (not playable yet)
     with open('video.h265', 'wb') as videoFile:
