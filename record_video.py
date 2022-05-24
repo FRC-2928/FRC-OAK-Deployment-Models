@@ -2,7 +2,6 @@
 
 import depthai as dai
 import cv2 # Must be imported otherwise cscore import hangs
-import cscore as cs
 
 # Create pipeline
 pipeline = dai.Pipeline()
@@ -29,26 +28,38 @@ camRgb.video.link(videoEnc.input)
 videoEnc.bitstream.link(xout.input)
 
 # Start the mjpeg server (default)
-print("Starting mjpeg server")
-mjpeg_port = 8080
-cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
-mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
-mjpeg_server.setSource(cvSource)
-print('MJPEG server started on port', mjpeg_port)
+try:
+    import cscore as cs
+    mjpeg_port = 8080
+    cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
+    mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
+    mjpeg_server.setSource(cvSource)
+    print('MJPEG server started on port', mjpeg_port)
+except Exception as e:
+    cvSource = False
 
 # Connect to device and start pipeline
 with dai.Device(pipeline) as device:
 
     # Output queue will be used to get the encoded data from the output defined above
-    q = device.getOutputQueue(name="h265", maxSize=30, blocking=True)
+    inPreview = device.getOutputQueue(name="h265", maxSize=30, blocking=True)
 
     # The .h265 file is a raw stream file (not playable yet)
     with open('video.h265', 'wb') as videoFile:
         print("Press Ctrl+C to stop encoding...")
         try:
             while True:
-                h265Packet = q.get()  # Blocking call, will wait until a new data has arrived
+                h265Packet = inPreview.get()  # Blocking call, will wait until a new data has arrived
                 h265Packet.getData().tofile(videoFile)  # Appends the packet data to the opened file
+
+                # Display stream
+                frame = inPreview.getCvFrame()
+                if cvSource is False:
+                    # Display stream to desktop window
+                    cv2.imshow("rgb", frame)
+                else:               
+                    # Display stream to browser
+                    cvSource.putFrame(frame)   
         except KeyboardInterrupt:
             # Keyboard interrupt (Ctrl + C) detected
             pass
