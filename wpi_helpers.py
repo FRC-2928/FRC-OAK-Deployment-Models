@@ -191,8 +191,8 @@ class WPINetworkTables():
         self.fps = 0
 
     def get_drive_data(self):
-        xaxisSpeed = self.xaxisSpeedEntry.getNumber()
-        zaxisRotate = self.zaxisRotateEntry.getNumber()
+        xaxisSpeed = self.xaxisSpeedEntry.getNumber(0)
+        zaxisRotate = self.zaxisRotateEntry.getNumber(0)
         return xaxisSpeed, zaxisRotate
 
     def put_data(self, boxes, confidence, class_ids):

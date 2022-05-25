@@ -1,4 +1,5 @@
 Pillow
+pandas
 # pkgconfig
 # robotpy-cscore
 # av==9.2.0
