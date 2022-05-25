@@ -83,7 +83,13 @@ def main(args, frc_config):
                 # Get BGR frame from NV12 encoded video frame to show with opencv
                 # cv2.imshow("video", videoFrame.getCvFrame())
                 # Show 'preview' frame as is (already in correct format, no copy is made)
-                cv2.imshow("preview", previewFrame.getFrame())
+                frame = previewFrame.getFrame()
+                if cvSource is False:
+                    # Display stream to desktop window
+                    cv2.imshow("preview", frame)
+                else:               
+                    # Display stream to browser
+                    cvSource.putFrame(frame)   
 
                 if cv2.waitKey(1) == ord('q'):
                     break
