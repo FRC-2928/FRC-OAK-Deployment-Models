@@ -2,7 +2,7 @@
 - This module saves images and a log file.
 - Images are saved in a folder.
 - Folder should be created manually with the name "DataCollected"
-- The name of the image and the steering angle is logged
+- The name of the image and the speed angle is logged
 in the log file.
 - Call the saveData function to start.
 - Call the saveLog function to end.
@@ -14,11 +14,11 @@ import os
 import cv2
 from datetime import datetime
 
-global imgList, steeringList
+global imgList, speedList
 countFolder = 0
 count = 0
 imgList = []
-steeringList = []
+speedList = []
 
 #GET CURRENT DIRECTORY PATH
 myDirectory = os.path.join(os.getcwd(), 'DataCollected')
@@ -31,21 +31,24 @@ newPath = myDirectory +"/IMG"+str(countFolder)
 os.makedirs(newPath)
 
 # SAVE IMAGES IN THE FOLDER
-def saveData(img,steering):
-    global imgList, steeringList
+def saveData(img,speed, rotate):
+    global imgList, speedList, rotateList
     now = datetime.now()
     timestamp = str(datetime.timestamp(now)).replace('.', '')
     #print("timestamp =", timestamp)
     fileName = os.path.join(newPath,f'Image_{timestamp}.jpg')
     cv2.imwrite(fileName, img)
     imgList.append(fileName)
-    steeringList.append(steering)
+    speedList.append(speed)
+    rotateList.append(rotate)
+
 
 # SAVE LOG FILE WHEN THE SESSION ENDS
 def saveLog():
-    global imgList, steeringList
+    global imgList, speedList, rotateList
     rawData = {'Image': imgList,
-                'Steering': steeringList}
+                'speed': speedList,
+                'rotate': rotateList}
     df = pd.DataFrame(rawData)
     df.to_csv(os.path.join(myDirectory,f'log_{str(countFolder)}.csv'), index=False, header=False)
     print('Log Saved')

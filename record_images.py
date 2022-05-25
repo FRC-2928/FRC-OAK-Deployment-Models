@@ -78,7 +78,7 @@ def main(args, frc_config):
                 videoFrame = video.get()
                 previewFrame = preview.get()
                 speed, rotate = networkTables.get_drive_data()
-                img.saveData(previewFrame.getFrame(), speed)
+                img.saveData(previewFrame.getFrame(), speed, rotate)
 
                 # Get BGR frame from NV12 encoded video frame to show with opencv
                 # cv2.imshow("video", videoFrame.getCvFrame())
