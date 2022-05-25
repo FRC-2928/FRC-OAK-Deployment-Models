@@ -1,65 +1,105 @@
 #!/usr/bin/env python3
 
 import cv2
+import argparse
 import depthai as dai
 import img_helpers as img
+from wpi_helpers import ConfigParser, WPINetworkTables
 
-# Create pipeline
-pipeline = dai.Pipeline()
+def parse_args():
+    """Parse input arguments."""
+    desc = ('Capture and display live camera video, while doing '
+            'real-time object detection with OpenVINO optimized '
+            'YOLO model')
+    parser = argparse.ArgumentParser(description=desc)
+    # parser = add_camera_args(parser)
+    parser.add_argument(
+        '-g', '--gui', action='store_true',
+        help='use desktop gui for display [False]')
+    parser.set_defaults(gui=False) 
+    parser.add_argument(
+        '-n', '--no_network_tables', action='store_true',
+        help='use WPI Network Tables [True]')
+    parser.set_defaults(no_network_tables=False)   
+    parser.add_argument(
+        '-p', '--mjpeg_port', type=int, default=8080,
+        help='MJPEG server port [8080]')    
+    args = parser.parse_args()
+    return args
 
-# Define source and outputs
-camRgb = pipeline.create(dai.node.ColorCamera)
-xoutVideo = pipeline.create(dai.node.XLinkOut)
-xoutPreview = pipeline.create(dai.node.XLinkOut)
+# -------------------------------------------------------------------------
+# Main Program Start
+# -------------------------------------------------------------------------
+def main(args, frc_config):
+    # Create pipeline
+    pipeline = dai.Pipeline()
 
-xoutVideo.setStreamName("video")
-xoutPreview.setStreamName("preview")
+    # Define source and outputs
+    camRgb = pipeline.create(dai.node.ColorCamera)
+    xoutVideo = pipeline.create(dai.node.XLinkOut)
+    xoutPreview = pipeline.create(dai.node.XLinkOut)
 
-# Properties
-camRgb.setPreviewSize(300, 300)
-camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
-camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-camRgb.setInterleaved(True)
-camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+    xoutVideo.setStreamName("video")
+    xoutPreview.setStreamName("preview")
 
-# Linking
-camRgb.video.link(xoutVideo.input)
-camRgb.preview.link(xoutPreview.input)
+    # Properties
+    camRgb.setPreviewSize(300, 300)
+    camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
+    camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+    camRgb.setInterleaved(True)
+    camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 
-# Start the mjpeg server (default)
-try:
-    import cscore as cs
-    mjpeg_port = 8080
-    cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
-    mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
-    mjpeg_server.setSource(cvSource)
-    print('MJPEG server started on port', mjpeg_port)
-except Exception as e:
-    cvSource = False
-    
-# Connect to device and start pipeline
-with dai.Device(pipeline) as device:
+    # Linking
+    camRgb.video.link(xoutVideo.input)
+    camRgb.preview.link(xoutPreview.input)
 
-    video = device.getOutputQueue('video')
-    preview = device.getOutputQueue('preview')
-
+    # Start the mjpeg server (default)
     try:
-        while True:
-            videoFrame = video.get()
-            previewFrame = preview.get()
-            img.saveData(previewFrame.getFrame(), 0)
+        import cscore as cs
+        mjpeg_port = 8080
+        cvSource = cs.CvSource("cvsource", cs.VideoMode.PixelFormat.kMJPEG, 320, 240, 30)
+        mjpeg_server = cs.MjpegServer("httpserver", mjpeg_port)
+        mjpeg_server.setSource(cvSource)
+        print('MJPEG server started on port', mjpeg_port)
+    except Exception as e:
+        cvSource = False
 
-            # Get BGR frame from NV12 encoded video frame to show with opencv
-            cv2.imshow("video", videoFrame.getCvFrame())
-            # Show 'preview' frame as is (already in correct format, no copy is made)
-            cv2.imshow("preview", previewFrame.getFrame())
+    print("Using Network Tables")
+    networkTables = WPINetworkTables(frc_config.team)    
+        
+    # Connect to device and start pipeline
+    with dai.Device(pipeline) as device:
 
-            if cv2.waitKey(1) == ord('q'):
-                break
+        video = device.getOutputQueue('video')
+        preview = device.getOutputQueue('preview')
 
-    except KeyboardInterrupt:
-        # Keyboard interrupt (Ctrl + C) detected
-        pass
+        try:
+            while True:
+                videoFrame = video.get()
+                previewFrame = preview.get()
+                speed, rotate = networkTables.get_drive_data()
+                img.saveData(previewFrame.getFrame(), speed)
 
-    print("Saving log file")  
-    img.saveLog()      
+                # Get BGR frame from NV12 encoded video frame to show with opencv
+                # cv2.imshow("video", videoFrame.getCvFrame())
+                # Show 'preview' frame as is (already in correct format, no copy is made)
+                cv2.imshow("preview", previewFrame.getFrame())
+
+                if cv2.waitKey(1) == ord('q'):
+                    break
+
+        except KeyboardInterrupt:
+            # Keyboard interrupt (Ctrl + C) detected
+            pass
+
+        print("Saving log file")  
+        img.saveLog()   
+
+if __name__ == '__main__':
+    print("Running record_images.py")
+    args = parse_args()
+
+    # Load the FRC configuration file
+    frc_config = ConfigParser()
+
+    main(args, frc_config)               

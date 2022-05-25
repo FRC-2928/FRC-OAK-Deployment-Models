@@ -166,12 +166,19 @@ class WPINetworkTables():
         team: FRC team number
         labelMap: a dictionary used to translate class id to its name.
     """    
-    def __init__(self, team, hardware_type, labelMap):
+    def __init__(self,  team, 
+                        hardware_type="OAK-D Camera", 
+                        labelMap=["BlueBall","Redball"]):
+
         self.labelMap = labelMap
 
         ntinst = NetworkTablesInstance.getDefault()
         ntinst.startClientTeam(team)
         ntinst.startDSClient()
+
+        self.sd = ntinst.getTable("SmartDashboard")
+        self.xaxisSpeedEntry = self.sd.getEntry("ArcadeDrive xaxisSpeed")
+        self.zaxisRotateEntry = self.sd.getEntry("ArcadeDrive zaxisRotate")
         
         self.hardware_entry = ntinst.getTable("ML").getEntry("device")
         self.fps_entry = ntinst.getTable("ML").getEntry("fps")
@@ -182,6 +189,11 @@ class WPINetworkTables():
         self.resolution_entry.setString(str(FRAME_WIDTH) + ", " + str(FRAME_HEIGHT)) 
         self.startTime = time.monotonic()
         self.fps = 0
+
+    def get_drive_data(self):
+        xaxisSpeed = self.xaxisSpeedEntry.getNumber()
+        zaxisRotate = self.zaxisRotateEntry.getNumber()
+        return xaxisSpeed, zaxisRotate
 
     def put_data(self, boxes, confidence, class_ids):
         
