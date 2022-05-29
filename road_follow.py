@@ -43,7 +43,7 @@ def parse_args():
         '-t', '--conf_thresh', type=float, default=0.3,
         help='set the detection confidence threshold')
     parser.add_argument(
-        '-m', '--model', type=str, required=True, default='custom',
+        '-m', '--model', type=str, required=True, default='simple_frozen_graph',
         help=('[yolov3-tiny|yolov3|yolov3-spp|yolov4-tiny|yolov4|'
               'yolov4-csp|yolov4x-mish|yolov4-p5]-[{dimension}], where '
               '{dimension} could be either a single number (e.g. '
@@ -145,20 +145,11 @@ def main(args, config_parser):
         raise SystemExit('ERROR: file (%s.blob) not found!' % args.model)
 
     blob_file = f"{args.model}.blob"
-    config_file = f"{args.model}-config.json"
     nnPath = str((Path(__file__).parent / Path(blob_file)).resolve().absolute())
-    configPath = str((Path(__file__).parent / Path(config_file)).resolve().absolute())
     print(f"Running model at path {nnPath}")
 
     if not Path(nnPath).exists():
         print(f"No model found at path {nnPath}")
-
-    ## Read the model configuration file
-    # print("Loading network settings")
-    # model_config = ModelConfigParser(configPath)
-    # print(model_config.labelMap)
-    # print("Classes:", model_config.classes)
-    # print("Confidence Threshold:", model_config.confidence_threshold)
 
     print("Connecting to Network Tables")
     hardware_type = "OAK-D Camera"
@@ -194,7 +185,7 @@ def main(args, config_parser):
     camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 
     # Setting node configs
-    nn.setBlobPath(args.nnPath)
+    nn.setBlobPath(nnPath)
     nn.setConfidenceThreshold(0.5)
     nn.setNumInferenceThreads(2)
     nn.input.setBlocking(False)
