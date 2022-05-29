@@ -106,22 +106,22 @@ def loop_and_detect(previewQueue, detectionNNQueue, networkTables, cvSource):
                         (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
 
         if inDet is not None:
-            detections = inDet.detections
+            print(inDet.getAllLayerNames())
             counter += 1
 
         # If the frame is available, draw bounding boxes on it and show the frame
         if frame is not None:
-
+            pass
             # If the frame is available, draw bounding boxes on it and show the frame
-            for detection in detections:
+            # for detection in detections:
 
-                print(detection)
+            #     print(detection)
 
-                frame = displayFrame(detection, frame, color)
+            #     frame = displayFrame(detection, frame, color)
 
-                # Put data to Network Tables
-                if networkTables:
-                    networkTables.put_spacial_data(detection, fps)
+            #     # Put data to Network Tables
+            #     if networkTables:
+            #         networkTables.put_spacial_data(detection, fps)
 
         cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
         
@@ -186,7 +186,6 @@ def main(args, config_parser):
 
     # Setting node configs
     nn.setBlobPath(nnPath)
-    nn.setConfidenceThreshold(0.5)
     nn.setNumInferenceThreads(2)
     nn.input.setBlocking(False)
 
