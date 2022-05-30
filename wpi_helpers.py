@@ -172,19 +172,28 @@ class WPINetworkTables():
 
         self.labelMap = labelMap
 
+        # Connect to Network Tables
         ntinst = NetworkTablesInstance.getDefault()
         ntinst.startClientTeam(team)
         ntinst.startDSClient()
 
+        # Setup access to the SmartDashboard
         self.sd = ntinst.getTable("SmartDashboard")
         self.xaxisSpeedEntry = self.sd.getEntry("ArcadeDrive xaxisSpeed")
         self.zaxisRotateEntry = self.sd.getEntry("ArcadeDrive zaxisRotate")
-        
-        self.hardware_entry = ntinst.getTable("ML").getEntry("device")
-        self.fps_entry = ntinst.getTable("ML").getEntry("fps")
-        self.resolution_entry = ntinst.getTable("ML").getEntry("resolution")
-        self.entry = ntinst.getTable("ML").getEntry("detections")
 
+        # Create Network Table to put Machine Learning data
+        mlTable = ntinst.getTable("ML")
+        
+        self.hardware_entry = mlTable.getEntry("device")
+        self.fps_entry = mlTable.getEntry("fps")
+        self.resolution_entry = mlTable.getEntry("resolution")
+        self.detections_entry = mlTable.getEntry("detections")
+
+        self.speedEntry = self.sd.getEntry("xaxisSpeed")
+        self.rotateEntry = self.sd.getEntry("zaxisRotate")
+
+        # Put static data
         self.hardware_entry.setString(hardware_type)
         self.resolution_entry.setString(str(FRAME_WIDTH) + ", " + str(FRAME_HEIGHT)) 
         self.startTime = time.monotonic()
@@ -226,6 +235,6 @@ class WPINetworkTables():
         self.entry.setString(json.dumps(temp_entry))    
 
     def put_drive_data(self, steering):
-        self.xaxisSpeedEntry.setNumber(3.5)
-        self.zaxisRotateEntry.setNumber(steering)
+        self.speedEntry.setNumber(5.0)
+        self.rotateEntry.setNumber(steering)
             
