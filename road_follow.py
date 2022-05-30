@@ -93,7 +93,7 @@ def loop_and_detect(previewQueue, detectionNNQueue, networkTables, cvSource):
                 cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
 
         if inDet is not None:
-            print(inDet.getAllLayerNames())
+            # print(inDet.getAllLayerNames())
             steeringData = inDet.getLayerFp16("sequential/dense_3/BiasAdd/Add")
             counter += 1
 
