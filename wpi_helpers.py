@@ -224,4 +224,8 @@ class WPINetworkTables():
                             "confidence": int(detection.confidence * 100)}) 
         # self.fps_entry.setNumber(fps)  # setNumber is NOT WORKING
         self.entry.setString(json.dumps(temp_entry))    
+
+    def put_drive_data(self, steering):
+        self.xaxisSpeedEntry.setNumber(3.5)
+        self.zaxisRotateEntry.setNumber(steering)
             

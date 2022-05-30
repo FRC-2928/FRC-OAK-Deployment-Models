@@ -56,20 +56,6 @@ def parse_args():
         help='MJPEG server port [8080]')    
     args = parser.parse_args()
     return args
-
-def frameNorm(frame, bbox):
-    normVals = np.full(len(bbox), frame.shape[0])
-    normVals[::2] = frame.shape[1]
-    return (np.clip(np.array(bbox), 0, 1) * normVals).astype(int)
-
-def displayFrame(name, detection, frame):
-    color = (255, 0, 0)
-    bbox = frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-    # cv2.putText(frame, labelMap[detection.label], (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-    cv2.putText(frame, f"{int(detection.confidence * 100)}%", cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-
-    # Show the frame
-    cv2.imshow(name, frame)
            
 def loop_and_detect(previewQueue, detectionNNQueue, networkTables, cvSource):
     """Continuously capture images from camera and do object detection.
@@ -102,28 +88,22 @@ def loop_and_detect(previewQueue, detectionNNQueue, networkTables, cvSource):
 
         if inRgb is not None:
             frame = inRgb.getCvFrame()
-            cv2.putText(frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
-                        (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
+            cv2.putText(frame, "NN fps: {:.2f}".format(fps), 
+                (2, frame.shape[0] - 4), 
+                cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
 
         if inDet is not None:
             print(inDet.getAllLayerNames())
+            steeringData = inDet.getLayerFp16("sequential/dense_3/BiasAdd/Add")
             counter += 1
 
-        # If the frame is available, draw bounding boxes on it and show the frame
+        # If the frame is available, add the steering angle
         if frame is not None:
-            pass
-            # If the frame is available, draw bounding boxes on it and show the frame
-            # for detection in detections:
+            cv2.putText(frame, f"{steeringData}%", cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
 
-            #     print(detection)
-
-            #     frame = displayFrame(detection, frame, color)
-
-            #     # Put data to Network Tables
-            #     if networkTables:
-            #         networkTables.put_spacial_data(detection, fps)
-
-        cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
+            # Put data to Network Tables
+            if networkTables:
+                networkTables.put_spacial_data(steeringData)
         
         if cvSource is False:
             # Display stream to desktop window
@@ -178,7 +158,7 @@ def main(args, config_parser):
 
     # Properties
     frame_width = 200
-    frame_height = 200
+    frame_height = 66
     camRgb.setPreviewSize(frame_width, frame_height)
     camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
     camRgb.setInterleaved(False)
