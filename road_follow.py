@@ -99,7 +99,9 @@ def loop_and_detect(previewQueue, detectionNNQueue, networkTables, cvSource):
 
         # If the frame is available, add the steering angle
         if frame is not None:
-            cv2.putText(frame, f"{steeringData}%", cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(frame, f"{steeringData}", 
+                (10, frame.shape[0] - 4), 
+                cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
 
             # Put data to Network Tables
             if networkTables:
