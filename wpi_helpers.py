@@ -213,7 +213,7 @@ class WPINetworkTables():
             temp_entry.append({"label": cls_name, 
                                 "box": {"ymin": int(ymin), "xmin": int(xmin), "ymax": int(ymax), "xmax": int(xmax)}, 
                                 "confidence": float(cf)})                      
-            self.entry.setString(json.dumps(temp_entry))
+            self.detections_entry.setString(json.dumps(temp_entry))
           
             if self.fps % 100 == 0:
                 print("Completed", self.fps, "frames. FPS:", (1 / (time.monotonic() - self.startTime)))
@@ -232,7 +232,7 @@ class WPINetworkTables():
                             "spacial": {"X": x_coord, "Y": y_coord, "Z": z_coord},
                             "confidence": int(detection.confidence * 100)}) 
         # self.fps_entry.setNumber(fps)  # setNumber is NOT WORKING
-        self.entry.setString(json.dumps(temp_entry))    
+        self.detections_entry.setString(json.dumps(temp_entry))    
 
     def put_drive_data(self, steering):
         self.speedEntry.setNumber(5.0)
